@@ -20,5 +20,4 @@ func Setup(app *fiber.App) {
 	order.Get("/orders/:id", controllers.GetOrder)
 	order.Put("/orders/:id", controllers.UpdateOrder)
 	order.Delete("/orders/:id", controllers.DeleteOrder)
-
 }

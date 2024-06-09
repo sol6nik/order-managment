@@ -25,7 +25,6 @@ type Product struct {
 	OrderItems  []OrderItem    `json:"order_items"`
 }
 
-// Модель Order
 type Order struct {
 	ID         uint           `gorm:"primaryKey" json:"id"`
 	CreatedAt  time.Time      `json:"created_at"`
@@ -36,7 +35,6 @@ type Order struct {
 	OrderItems []OrderItem    `json:"order_items"`
 }
 
-// Модель OrderItem
 type OrderItem struct {
 	ID        uint           `gorm:"primaryKey" json:"id"`
 	CreatedAt time.Time      `json:"created_at"`

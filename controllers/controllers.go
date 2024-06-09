@@ -144,16 +144,44 @@ func CreateOrder(c *fiber.Ctx) error {
 	claims := token.Claims.(*jwt.StandardClaims)
 	userId, _ := strconv.Atoi(claims.Issuer)
 
-	var order models.Order
+	var inputOrder struct {
+		OrderItems []struct {
+			ProductID uint `json:"product_id"`
+			Quantity  int  `json:"quantity"`
+		} `json:"order_items"`
+	}
 
-	if err := c.BodyParser(&order); err != nil {
+	if err := c.BodyParser(&inputOrder); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "could not parse order",
 		})
 	}
 
-	order.UserID = uint(userId)
-	order.CreatedAt = time.Now()
+	order := models.Order{
+		UserID:    uint(userId),
+		CreatedAt: time.Now(),
+	}
+
+	var totalOrderPrice float64
+
+	for _, item := range inputOrder.OrderItems {
+		var product models.Product
+		if err := database.DB.First(&product, item.ProductID).Error; err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "invalid product id",
+			})
+		}
+
+		orderItem := models.OrderItem{
+			ProductID: item.ProductID,
+			Quantity:  item.Quantity,
+			Price:     product.Price,
+			CreatedAt: time.Now(),
+		}
+
+		totalOrderPrice += product.Price * float64(item.Quantity)
+		order.OrderItems = append(order.OrderItems, orderItem)
+	}
 
 	if err := database.DB.Create(&order).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
